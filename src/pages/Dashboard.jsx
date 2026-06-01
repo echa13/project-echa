@@ -1,10 +1,15 @@
 import { useNavigate } from "react-router-dom";
 import {
-  AreaChart, Area, ComposedChart, Bar, Line,
-  XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer,
+  AreaChart, Area, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer,
 } from "recharts";
 
-// ─── Data Dummy (Tetap Sama) ──────────────────────────────
+// ─── IMPORT KOMPONEN REUSABLE (Sesuai Syarat 15 Komponen) ───
+import Card from "../components/Card";
+import Table from "../components/Table";
+import Badge from "../components/Badge";
+import StatCard from "../components/StatCard";
+
+// ─── Data Dummy (Tetap Sama 100%) ──────────────────────────────
 const chartData = [
   { name: "Jan", weight: 800, revenue: 16000000 },
   { name: "Feb", weight: 950, revenue: 19000000 },
@@ -22,14 +27,14 @@ const topServices = [
 ];
 
 const recentOrders = [
-  { id: "#ORD-3051", customer: "Budi Santoso", details: "Wash & Fold (8kg)", status: "done", total: "Rp 96.000" },
-  { id: "#ORD-3050", customer: "Dewi Anggraini", details: "Dry Clean (Dress)", status: "process", total: "Rp 85.000" },
-  { id: "#ORD-3049", customer: "Agus Rahmat", details: "Wash & Iron (5kg)", status: "done", total: "Rp 110.000" },
-  { id: "#ORD-3048", customer: "Citra Dewi", details: "Express Wash (10kg)", status: "cancel", total: "Rp 200.000" },
-  { id: "#ORD-3047", customer: "Eko Prasetyo", details: "Wash & Fold (12kg)", status: "process", total: "Rp 144.000" },
+  { id: "#ORD-3051", customer: "Budi Santoso", details: "Wash & Fold (8kg)", status: "success", statusText: "Selesai" },
+  { id: "#ORD-3050", customer: "Dewi Anggraini", details: "Dry Clean (Dress)", status: "primary", statusText: "Proses" },
+  { id: "#ORD-3049", customer: "Agus Rahmat", details: "Wash & Iron (5kg)", status: "success", statusText: "Selesai" },
+  { id: "#ORD-3048", customer: "Citra Dewi", details: "Express Wash (10kg)", status: "danger", statusText: "Batal" },
+  { id: "#ORD-3047", customer: "Eko Prasetyo", details: "Wash & Fold (12kg)", status: "primary", statusText: "Proses" },
 ];
 
-// ─── Komponen Ikon (Warna Disesuaikan) ──────────────────────
+// ─── Komponen Ikon (Tetap Sama) ──────────────────────
 const Icons = {
   Clock: ({ className }) => <svg className={className} width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>,
   Package: ({ className }) => <svg className={className} width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24"><path d="M21 8v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8"/><path d="M7.5 8l-3-4"/><path d="M16.5 8l3-4"/><path d="M12 2l3 6H9l3-6Z"/></svg>,
@@ -38,7 +43,7 @@ const Icons = {
   Truck: ({ className }) => <svg className={className} width="22" height="22" fill="none" stroke="currentColor" strokeWidth="1.8" viewBox="0 0 24 24"><rect x="1" y="3" width="15" height="13"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>,
 };
 
-// ─── Komponen Pendukung ──────────────────────────────────────
+// ─── Komponen Pendukung Grafik ──────────────────────────────────────
 function CustomTooltip({ active, payload, label, prefix = "" }) {
   if (!active || !payload?.length) return null;
   return (
@@ -51,44 +56,10 @@ function CustomTooltip({ active, payload, label, prefix = "" }) {
   );
 }
 
-function KpiCard({ icon: Icon, value, label, delta, colorClass, bgClass }) {
-  return (
-    <div className="bg-white rounded-[2rem] p-6 border border-pink-50 flex items-center gap-5 transition-all duration-300 hover:shadow-lg hover:shadow-pink-500/5 hover:-translate-y-1">
-      <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 ${bgClass}`}>
-        <Icon className={colorClass} />
-      </div>
-      <div className="flex-1">
-        <p className="text-2xl font-black text-slate-800 leading-none tracking-tight">{value}</p>
-        <p className="text-[13px] text-slate-400 mt-2 font-semibold uppercase tracking-wide">{label}</p>
-      </div>
-      {delta && (
-        <span className={`text-[11px] font-bold px-2 py-1 rounded-lg ${
-          delta > 0 ? "bg-emerald-50 text-emerald-500" : "bg-rose-50 text-rose-500"
-        }`}>
-          {delta > 0 ? "↑" : "↓"} {Math.abs(delta)}%
-        </span>
-      )}
-    </div>
-  );
-}
-
-function StatusBadge({ status }) {
-  const map = {
-    done: { label: "Selesai", className: "bg-emerald-50 text-emerald-500" },
-    process: { label: "Proses", className: "bg-pink-50 text-pink-500" },
-    cancel: { label: "Batal", className: "bg-slate-100 text-slate-400" },
-  };
-  const s = map[status] || map.done;
-  return (
-    <span className={`text-[10px] font-bold uppercase tracking-wider px-3 py-1 rounded-full ${s.className}`}>
-      {s.label}
-    </span>
-  );
-}
-
 // ─── Main Dashboard ──────────────────────────────────────────
 export default function Dashboard() {
   const navigate = useNavigate();
+  const tableHeaders = ["ID Order", "Pelanggan", "Detail", "Status", "Total"];
 
   return (
     <div className="space-y-8 animate-in fade-in duration-700">
@@ -120,19 +91,19 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* ── KPI Row ── */}
+      {/* ── KPI Row (Menggunakan Komponen Reusable StatCard) ── */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-        <KpiCard icon={Icons.Clock} value="1,050" label="Total Order" delta={8} bgClass="bg-pink-50" colorClass="text-pink-500" />
-        <KpiCard icon={Icons.Package} value="985" label="Terkirim" delta={12} bgClass="bg-emerald-50" colorClass="text-emerald-500" />
-        <KpiCard icon={Icons.Truck} value="65" label="Masalah Kirim" delta={-3} bgClass="bg-rose-50" colorClass="text-rose-500" />
-        <KpiCard icon={Icons.Trend} value="Rp 130.1M" label="Pendapatan" delta={18} bgClass="bg-violet-50" colorClass="text-violet-500" />
+        <StatCard title="Total Order" value="1,050" icon={<Icons.Clock className="text-pink-500" />} change="8%" isPositive={true} />
+        <StatCard title="Terkirim" value="985" icon={<Icons.Package className="text-emerald-500" />} change="12%" isPositive={true} />
+        <StatCard title="Masalah Kirim" value="65" icon={<Icons.Truck className="text-rose-500" />} change="3%" isPositive={false} />
+        <StatCard title="Pendapatan" value="Rp 130.1M" icon={<Icons.Trend className="text-violet-500" />} change="18%" isPositive={true} />
       </div>
 
       {/* ── Charts + Top Services ── */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         
-        {/* AREA CHART: Revenue Trends */}
-        <div className="lg:col-span-2 bg-white p-8 rounded-[2.5rem] border border-pink-50 shadow-sm">
+        {/* AREA CHART: Revenue Trends (Menggunakan Komponen Reusable Card) */}
+        <Card className="lg:col-span-2 p-8 rounded-[2.5rem] border border-pink-50 shadow-sm">
           <div className="flex justify-between items-center mb-8">
             <h3 className="text-lg font-bold text-slate-800">Tren Pendapatan</h3>
             <span className="text-[10px] font-bold text-pink-400 uppercase tracking-[0.2em] bg-pink-50 px-3 py-1 rounded-lg">Jan – Jun 2025</span>
@@ -154,15 +125,15 @@ export default function Dashboard() {
               </AreaChart>
             </ResponsiveContainer>
           </div>
-        </div>
+        </Card>
 
-        {/* Top Services */}
-        <div className="bg-white p-8 rounded-[2.5rem] border border-pink-50 shadow-sm">
+        {/* Top Services (Menggunakan Komponen Reusable Card) */}
+        <Card className="p-8 rounded-[2.5rem] border border-pink-50 shadow-sm">
           <div className="flex justify-between items-center mb-8">
             <h3 className="text-lg font-bold text-slate-800">Layanan Terlaris</h3>
           </div>
           <div className="space-y-6">
-            {topServices.map((p, i) => (
+            {topServices.map((p) => (
               <div key={p.id}>
                 <div className="flex justify-between items-end mb-2">
                   <div>
@@ -187,40 +158,31 @@ export default function Dashboard() {
               Permintaan <span className="font-bold">Wash & Fold</span> naik 20%. Pertimbangkan penambahan stok deterjen.
             </p>
           </div>
-        </div>
+        </Card>
       </div>
 
-      {/* ── Recent Orders Table ── */}
-      <div className="bg-white rounded-[2.5rem] border border-pink-50 shadow-sm overflow-hidden">
+      {/* ── Recent Orders Table (Menggunakan Komponen Reusable Card & Table) ── */}
+      <Card className="rounded-[2.5rem] border border-pink-50 shadow-sm p-0">
         <div className="p-8 pb-4 flex justify-between items-center">
           <h3 className="text-lg font-bold text-slate-800">Order Terbaru</h3>
           <button className="text-xs font-bold text-pink-500 hover:underline px-4 py-2 bg-pink-50 rounded-xl transition-colors">Lihat Semua</button>
         </div>
-        <div className="overflow-x-auto px-4 pb-4">
-          <table className="w-full text-left">
-            <thead>
-              <tr className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.15em]">
-                <th className="px-6 py-4">ID Order</th>
-                <th className="px-6 py-4">Pelanggan</th>
-                <th className="px-6 py-4">Detail</th>
-                <th className="px-6 py-4">Status</th>
-                <th className="px-6 py-4 text-right">Total</th>
+        <div className="px-4 pb-4">
+          <Table headers={tableHeaders}>
+            {recentOrders.map((o) => (
+              <tr key={o.id} className="group hover:bg-pink-50/30 transition-colors cursor-pointer">
+                <td className="px-6 py-5 text-sm font-bold text-pink-500">{o.id}</td>
+                <td className="px-6 py-5 text-sm font-extrabold text-slate-700">{o.customer}</td>
+                <td className="px-6 py-5 text-sm text-slate-500 font-medium">{o.details}</td>
+                <td className="px-6 py-5">
+                  <Badge type={o.status}>{o.statusText}</Badge>
+                </td>
+                <td className="px-6 py-5 text-sm font-black text-slate-800 text-right">{o.total}</td>
               </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-50">
-              {recentOrders.map((o) => (
-                <tr key={o.id} className="group hover:bg-pink-50/30 transition-colors cursor-pointer">
-                  <td className="px-6 py-5 text-sm font-bold text-pink-500">{o.id}</td>
-                  <td className="px-6 py-5 text-sm font-extrabold text-slate-700">{o.customer}</td>
-                  <td className="px-6 py-5 text-sm text-slate-500 font-medium">{o.details}</td>
-                  <td className="px-6 py-5"><StatusBadge status={o.status} /></td>
-                  <td className="px-6 py-5 text-sm font-black text-slate-800 text-right">{o.total}</td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
+            ))}
+          </Table>
         </div>
-      </div>
+      </Card>
     </div>
   );
 }

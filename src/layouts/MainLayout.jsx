@@ -1,6 +1,7 @@
 import { Outlet } from "react-router-dom";
 import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
+import fotoProfil from "../assets/Profil.png"; 
 
 export default function MainLayout() {
   return (
@@ -23,7 +24,8 @@ export default function MainLayout() {
             Dibuat sticky agar tetap terlihat saat scroll, dengan efek backdrop blur 
         */}
         <header className="sticky top-0 z-20 bg-white/70 backdrop-blur-md border-b border-pink-50/50">
-          <Header />
+          {/* Kirim file fotoProfil ke komponen Header lewat props userImage sesuai arahan modul */}
+          <Header userImage={fotoProfil} />
         </header>
 
         {/* PAGE CONTENT 

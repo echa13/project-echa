@@ -8,11 +8,12 @@ import {
   HiOutlineAdjustments
 } from "react-icons/hi";
 
-export default function Header() {
+// Ambil props userImage yang dikirim dari MainLayout
+export default function Header({ userImage }) {
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const dropdownRef = useRef(null);
 
-  // Menutup dropdown saat user mengklik area di luar dropdown
+  // Menutup dropdown saat user mengklik area di luar dropdown (Tetap Sama)
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
@@ -93,15 +94,22 @@ export default function Header() {
             aria-haspopup="true"
             className="flex items-center gap-3 p-1.5 pr-3 rounded-full hover:bg-pink-50 border border-transparent hover:border-pink-100 transition-all"
           >
-            <div className="w-10 h-10 rounded-full bg-pink-100 text-pink-600 flex items-center justify-center text-sm font-bold border-2 border-white shadow-sm">
-              AD
+            {/* PERBAIKAN: Menambahkan ring-2 ring-pink-400 agar ada lingkaran pink estetik di luar foto */}
+            <div className="w-10 h-10 rounded-full bg-pink-100 overflow-hidden border-2 border-white shadow-sm flex-shrink-0 ring-2 ring-pink-400">
+              {userImage ? (
+                <img src={userImage} alt="Chae Profile" className="w-full h-full object-cover" />
+              ) : (
+                <div className="w-full h-full flex items-center justify-center text-pink-600 text-sm font-bold">CH</div>
+              )}
             </div>
+            
+            {/* PERBAIKAN: Mengubah teks statis agar sesuai dengan nama "Cha" & "ADMIN" di foto mockup */}
             <div className="hidden sm:block text-left">
               <span className="block text-sm font-bold text-slate-700 leading-none mb-1">
-                Admin Detail
+                Cha
               </span>
-              <span className="block text-xs text-slate-400 font-medium leading-none">
-                Manager Operasional
+              <span className="block text-[10px] text-pink-500 font-extrabold tracking-wider uppercase leading-none">
+                ADMIN
               </span>
             </div>
           </button>
@@ -111,8 +119,8 @@ export default function Header() {
             <div className="absolute right-0 mt-3 w-56 bg-white border border-pink-50 rounded-2xl shadow-xl shadow-pink-100/50 py-2 z-50 transform origin-top-right transition-all">
               
               <div className="px-4 py-3 border-b border-pink-50 sm:hidden">
-                <span className="block text-sm font-bold text-slate-700">Admin Detail</span>
-                <span className="block text-xs text-slate-400">Manager Operasional</span>
+                <span className="block text-sm font-bold text-slate-700">Cha</span>
+                <span className="block text-xs text-pink-500 font-bold uppercase">ADMIN</span>
               </div>
 
               <div className="p-2">
@@ -129,7 +137,6 @@ export default function Header() {
               <div className="h-px bg-pink-50 my-1 mx-2"></div>
               
               <div className="p-2">
-                {/* Tombol logout tetap menggunakan warna rose agar secara UI/UX tetap intuitif sebagai tindakan destruktif/keluar */}
                 <button className="flex items-center gap-3 w-full text-left px-3 py-2 text-sm font-medium text-rose-500 rounded-xl hover:bg-rose-50 transition-colors">
                   <HiOutlineLogout className="text-lg" />
                   Keluar
