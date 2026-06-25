@@ -1,9 +1,7 @@
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   HiUserAdd,
   HiSearch,
-  HiSparkles,
-  HiBadgeCheck,
   HiShieldCheck,
   HiStar,
   HiUsers,
@@ -29,7 +27,7 @@ import {
   TableCell,
 } from "../components/ui";
 
-const initialCustomers = [
+const defaultCustomers = [
   {
     id: 1,
     name: "Andi Saputra",
@@ -83,7 +81,7 @@ const initialCustomers = [
 ];
 
 export default function Members() {
-  const [customers, setCustomers] = useState(initialCustomers);
+  const [customers, setCustomers] = useState(defaultCustomers);
   const [search, setSearch] = useState("");
   const [activeTab, setActiveTab] = useState("customer");
   const [openDialog, setOpenDialog] = useState(false);
@@ -95,6 +93,30 @@ export default function Members() {
     points: 0,
     tier: "Silver",
   });
+
+  const searchInputRef = useRef(null);
+  const nameInputRef = useRef(null);
+
+  useEffect(() => {
+    const stored = localStorage.getItem("crm_customers");
+    if (stored) {
+      setCustomers(JSON.parse(stored));
+    }
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem("crm_customers", JSON.stringify(customers));
+  }, [customers]);
+
+  useEffect(() => {
+    searchInputRef.current?.focus();
+  }, []);
+
+  useEffect(() => {
+    if (openDialog) {
+      nameInputRef.current?.focus();
+    }
+  }, [openDialog]);
 
   const filteredCustomers = customers.filter(
     (customer) =>
@@ -186,6 +208,7 @@ export default function Members() {
                 <label className="space-y-2 text-sm font-medium text-slate-700">
                   Nama Customer
                   <input
+                    ref={nameInputRef}
                     name="name"
                     type="text"
                     value={form.name}
@@ -297,6 +320,7 @@ export default function Members() {
               <div className="relative w-full max-w-sm">
                 <HiSearch className="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" />
                 <input
+                  ref={searchInputRef}
                   type="text"
                   value={search}
                   onChange={(e) => setSearch(e.target.value)}
