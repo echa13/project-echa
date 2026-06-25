@@ -14,10 +14,11 @@ const Order = lazy(() => import("./pages/Order"));
 const AddOrder = lazy(() => import("./pages/AddOrder"));
 
 const ErrorPage = lazy(() => import("./pages/ErrorPage"));
+const AdminUsers = lazy(() => import("./pages/AdminUsers")); // <-- Menambahkan halaman CRUD Admin baru kamu
 
 /* Auth */
 const Login = lazy(() => import("./pages/auth/Login"));
-const Register = lazy(() => import("./pages/auth/Register"));
+const Register = lazy(() => import("./pages/Register")); // <-- SUDAH DIPERBAIKI: Mengarah langsung ke src/pages/Register.jsx
 const Forgot = lazy(() => import("./pages/auth/Forgot"));
 
 /* Layout */
@@ -46,13 +47,16 @@ function App() {
 
         {/* MAIN */}
         <Route
-          element={
+          element = {
             <ProtectedRoute>
               <MainLayout />
             </ProtectedRoute>
           }
         >
           <Route path="/" element={<Dashboard />} />
+
+          {/* ADMIN USERS CRUD */}
+          <Route path="/admin-users" element={<AdminUsers />} /> {/* <-- Route untuk halaman manajemen user kamu */}
 
           {/* PATIENTS */}
           <Route path="/Members" element={<Member />} />

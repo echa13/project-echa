@@ -1,14 +1,15 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import axios from "axios";
+import { userAPI } from "../../services/userAPI"; // Mengarah ke file konfigurasi API kamu
 import { HiOutlineMail, HiOutlineLockClosed, HiLogin, HiExclamationCircle } from "react-icons/hi";
 
 export default function Login() {
   const navigate = useNavigate();
 
+  // Bersihkan data dummy bawaan template agar form kosong saat dibuka
   const [dataForm, setDataForm] = useState({
-    email: "emilys", // Default dummy data
-    password: "emilyspass",
+    email: "",
+    password: "",
   });
 
   const [loading, setLoading] = useState(false);
@@ -25,15 +26,31 @@ export default function Login() {
     setError("");
 
     try {
-      const response = await axios.post(
-        "https://dummyjson.com/user/login",
-        { username: dataForm.email, password: dataForm.password },
-        { headers: { "Content-Type": "application/json" } }
-      );
-      localStorage.setItem("user", JSON.stringify(response.data));
-      navigate("/");
+      // 1. Cari user di Supabase berdasarkan email yang diinput
+      const users = await userAPI.loginCheck(dataForm.email);
+
+      // 2. Jika email tidak terdaftar di database
+      if (users.length === 0) {
+        setError("Email tidak terdaftar di sistem!");
+        return;
+      }
+
+      const userFound = users[0];
+
+      // 3. Cocokkan password yang diinput dengan password asli di database
+      if (userFound.password === dataForm.password) {
+        alert("Login Berhasil!");
+        
+        // Simpan data session user nyata ke localStorage
+        localStorage.setItem("user", JSON.stringify(userFound));
+        
+        // Alihkan halaman ke dashboard utama
+        navigate("/");
+      } else {
+        setError("Password yang Anda masukkan salah!");
+      }
     } catch (err) {
-      setError(err.response?.data?.message || "Username atau password salah");
+      setError(err.message || "Terjadi kesalahan sistem saat mencoba masuk");
     } finally {
       setLoading(false);
     }
@@ -59,19 +76,19 @@ export default function Login() {
       {/* FORM AREA */}
       <form onSubmit={handleSubmit} className="space-y-6">
         
-        {/* USERNAME INPUT */}
+        {/* EMAIL INPUT */}
         <div className="space-y-2">
           <label className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-500 ml-1">
-            Username Admin
+            Email Admin
           </label>
           <div className="relative group">
             <input
-              type="text"
+              type="email"
               name="email"
               value={dataForm.email}
               onChange={handleChange}
               required
-              placeholder="Masukkan username"
+              placeholder="Masukkan email Anda"
               className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-4 px-12 text-sm text-slate-900 outline-none transition-all focus:bg-white focus:border-pink-400 focus:ring-4 focus:ring-pink-100/50 group-hover:border-slate-300 font-bold placeholder:text-slate-400 placeholder:font-medium shadow-sm"
             />
             <HiOutlineMail className="absolute left-4 top-1/2 -translate-y-1/2 text-xl text-slate-400 group-focus-within:text-pink-500 transition-colors" />
