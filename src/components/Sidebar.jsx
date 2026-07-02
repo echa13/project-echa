@@ -148,7 +148,7 @@ export default function Sidebar() {
         {/* Main Menu */}
         <div className="mb-6">
           <SectionLabel>Menu Utama</SectionLabel>
-          <NavItem to="/" end icon={<DashIcon />} label="Dashboard" badge="Baru" />
+          <NavItem to="/dashboard" end icon={<DashIcon />} label="Dashboard" badge="Baru" />
           <NavItem to="/members" icon={<MemberIcon />} label="Member" badge="48" />
           <NavItem to="/orders" icon={<OrderIcon />} label="Order" badge="5" />
           <NavItem to="/reports" icon={<ReportIcon />} label="Laporan" />

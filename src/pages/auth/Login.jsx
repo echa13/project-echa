@@ -45,7 +45,7 @@ export default function Login() {
         localStorage.setItem("user", JSON.stringify(userFound));
         
         // Alihkan halaman ke dashboard utama
-        navigate("/");
+        navigate("/dashboard");
       } else {
         setError("Password yang Anda masukkan salah!");
       }

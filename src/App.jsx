@@ -5,6 +5,7 @@ import { Routes, Route, Navigate } from "react-router-dom";
 import Loading from "./components/Loading";
 
 /* Pages */
+const LandingPage = lazy(() => import("./pages/LandingPage"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
 
 const Member = lazy(() => import("./pages/Member"));
@@ -15,6 +16,9 @@ const AddOrder = lazy(() => import("./pages/AddOrder"));
 
 const ErrorPage = lazy(() => import("./pages/ErrorPage"));
 const AdminUsers = lazy(() => import("./pages/AdminUsers")); // <-- Menambahkan halaman CRUD Admin baru kamu
+
+/* LANDING PAGE (Public) */
+/* Dashboard dipindah ke /dashboard */
 
 /* Auth */
 const Login = lazy(() => import("./pages/auth/Login"));
@@ -38,6 +42,9 @@ function App() {
     <Suspense fallback={<Loading />}>
       <Routes>
 
+        {/* LANDING PAGE (Public) */}
+        <Route path="/" element={<LandingPage />} />
+
         {/* AUTH */}
         <Route element={<AuthLayout />}>
           <Route path="/login" element={<Login />} />
@@ -53,7 +60,7 @@ function App() {
             </ProtectedRoute>
           }
         >
-          <Route path="/" element={<Dashboard />} />
+          <Route path="/dashboard" element={<Dashboard />} />
 
           {/* ADMIN USERS CRUD */}
           <Route path="/admin-users" element={<AdminUsers />} /> {/* <-- Route untuk halaman manajemen user kamu */}

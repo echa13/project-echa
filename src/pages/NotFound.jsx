@@ -38,7 +38,7 @@ export default function NotFound() {
 
         {/* Tombol Kembali - Elegant Slate Style */}
         <Link
-          to="/"
+          to="/dashboard"
           className="inline-flex items-center justify-center gap-3 mt-10 bg-slate-900 hover:bg-pink-600 text-white font-bold px-8 py-4 rounded-2xl shadow-xl shadow-pink-500/20 transition-all duration-300 active:scale-95 group"
         >
           <FiHome className="text-xl group-hover:scale-110 transition-transform" />

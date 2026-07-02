@@ -69,7 +69,7 @@ export default function ErrorPage({
 
         {/* BUTTON ACTION - High Contrast Slate */}
         <Link
-          to="/"
+          to="/dashboard"
           className="group inline-flex items-center gap-3 mt-12 bg-slate-900 hover:bg-pink-600 text-white px-10 py-4 rounded-[1.5rem] shadow-2xl shadow-slate-900/20 transition-all active:scale-95 font-bold uppercase tracking-widest text-xs"
         >
           <HiArrowLeft className="text-lg group-hover:-translate-x-2 transition-transform" />
