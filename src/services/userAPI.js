@@ -32,5 +32,17 @@ export const userAPI = {
     async loginCheck(email) {
         const response = await axios.get(`${BASE_URL}?email=eq.${email}`, { headers });
         return response.data; // Mengembalikan array user yang cocok
+    },
+
+    // 5. Update Points User (Untuk Sistem Poin Loyalitas)
+    async updateUserPoints(id, points) {
+        const response = await axios.patch(`${BASE_URL}?id=eq.${id}`, { points }, { headers });
+        return response.data;
+    },
+
+    // 6. Mendapatkan User berdasarkan ID
+    async getUserById(id) {
+        const response = await axios.get(`${BASE_URL}?id=eq.${id}`, { headers });
+        return response.data;
     }
 };
