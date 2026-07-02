@@ -14,6 +14,11 @@ import {
   HiChevronDown,
   HiUserCircle,
   HiLogin,
+  HiLogout,
+  HiCash,
+  HiShoppingBag,
+  HiStar,
+  HiChartBar,
 } from "react-icons/hi";
 
 // ─── Service Card Data (Fallback jika API belum siap) ───
@@ -87,11 +92,22 @@ export default function LandingPage() {
   const [showMobileMenu, setShowMobileMenu] = useState(false);
   const [scrolled, setScrolled] = useState(false);
   const [selectedService, setSelectedService] = useState(null);
+  const [userData, setUserData] = useState(null);
+  const [userRole, setUserRole] = useState(null);
 
-  // Cek login status & scroll
+  // Cek login status, role & scroll
   useEffect(() => {
-    const user = localStorage.getItem("user");
-    setIsLoggedIn(!!user);
+    const stored = localStorage.getItem("user");
+    if (stored) {
+      const parsed = JSON.parse(stored);
+      setUserData(parsed);
+      setUserRole(parsed.role || 'user');
+      setIsLoggedIn(true);
+    } else {
+      setUserData(null);
+      setUserRole(null);
+      setIsLoggedIn(false);
+    }
 
     const handleScroll = () => setScrolled(window.scrollY > 20);
     window.addEventListener("scroll", handleScroll);
@@ -164,14 +180,34 @@ export default function LandingPage() {
 
             {/* Desktop CTA Buttons */}
             <div className="hidden lg:flex items-center gap-3">
-              {isLoggedIn ? (
+              {userRole === 'admin' ? (
                 <Link
                   to="/dashboard"
                   className="inline-flex items-center gap-2 bg-gradient-to-r from-pink-500 to-rose-500 text-white px-6 py-2.5 rounded-2xl text-sm font-bold shadow-lg shadow-pink-500/20 hover:shadow-xl hover:shadow-pink-500/30 hover:-translate-y-0.5 transition-all"
                 >
-                  <HiUserCircle className="text-xl" />
-                  Portal Admin
+                  <HiChartBar className="text-xl" />
+                  Portal Admin Utama
                 </Link>
+              ) : userRole === 'user' ? (
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-2 bg-pink-50 border border-pink-100 px-4 py-1.5 rounded-full">
+                    <HiStar className="text-amber-400 text-sm" />
+                    <span className="text-xs font-bold text-pink-600">{userData?.points || 0} Poin</span>
+                  </div>
+                  <div className="flex items-center gap-2 pl-3 border-l border-pink-100">
+                    <div className="w-9 h-9 rounded-full bg-gradient-to-br from-pink-400 to-rose-500 flex items-center justify-center text-white text-sm font-bold shadow-md ring-2 ring-pink-200">
+                      {userData?.username?.charAt(0)?.toUpperCase() || 'A'}
+                    </div>
+                    <span className="text-sm font-bold text-slate-700 hidden lg:block">{userData?.username || 'Agen'}</span>
+                    <button
+                      onClick={() => { localStorage.removeItem("user"); setUserData(null); setUserRole(null); setIsLoggedIn(false); }}
+                      className="p-2 rounded-xl text-slate-400 hover:text-rose-500 hover:bg-rose-50 transition-all"
+                      title="Keluar"
+                    >
+                      <HiLogout className="text-lg" />
+                    </button>
+                  </div>
+                </div>
               ) : (
                 <>
                   <Link
@@ -230,14 +266,40 @@ export default function LandingPage() {
                 Lokasi Cabang
               </button>
               <div className="h-px bg-pink-100 my-4"></div>
-              {isLoggedIn ? (
+              {userRole === 'admin' ? (
                 <Link
                   to="/dashboard"
                   className="flex items-center gap-2 w-full px-4 py-3 rounded-xl text-sm font-bold text-white bg-gradient-to-r from-pink-500 to-rose-500 text-center justify-center"
                 >
-                  <HiUserCircle className="text-xl" />
-                  Portal Admin
+                  <HiChartBar className="text-xl" />
+                  Portal Admin Utama
                 </Link>
+              ) : userRole === 'user' ? (
+                <>
+                  <div className="flex items-center gap-3 px-4 py-3 bg-pink-50 rounded-xl">
+                    <div className="w-10 h-10 rounded-full bg-gradient-to-br from-pink-400 to-rose-500 flex items-center justify-center text-white font-bold shadow-md">
+                      {userData?.username?.charAt(0)?.toUpperCase() || 'A'}
+                    </div>
+                    <div className="flex-1">
+                      <p className="text-sm font-bold text-slate-700">{userData?.username || 'Agen'}</p>
+                      <p className="text-xs text-pink-500 font-semibold">{userData?.points || 0} Poin</p>
+                    </div>
+                  </div>
+                  <Link
+                    to="/orders/add"
+                    className="flex items-center gap-2 w-full px-4 py-3 rounded-xl text-sm font-bold text-white bg-gradient-to-r from-pink-500 to-rose-500 justify-center"
+                  >
+                    <HiShoppingBag className="text-lg" />
+                    Buat Order Baru
+                  </Link>
+                  <button
+                    onClick={() => { localStorage.removeItem("user"); setUserData(null); setUserRole(null); setIsLoggedIn(false); }}
+                    className="flex items-center gap-2 w-full px-4 py-3 rounded-xl text-sm font-semibold text-rose-500 bg-rose-50 justify-center"
+                  >
+                    <HiLogout className="text-lg" />
+                    Keluar
+                  </button>
+                </>
               ) : (
                 <>
                   <Link
@@ -261,10 +323,49 @@ export default function LandingPage() {
         )}
       </nav>
 
+      {/* ─── FLOATING ADMIN BAR (Khusus Admin) ─── */}
+      {userRole === 'admin' && (
+        <div className="fixed top-20 left-0 right-0 z-40 bg-slate-900/95 backdrop-blur-xl border-b border-white/10 shadow-2xl animate-in slide-in-from-top-3 duration-500">
+          <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="flex items-center justify-between py-3">
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2 bg-emerald-500/20 text-emerald-400 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider">
+                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></div>
+                  Admin Mode
+                </div>
+              </div>
+              <div className="flex items-center gap-6">
+                <div className="text-center">
+                  <p className="text-[9px] font-bold text-slate-500 uppercase tracking-wider">Total Order</p>
+                  <p className="text-lg font-black text-white">1.050</p>
+                </div>
+                <div className="w-px h-8 bg-white/10"></div>
+                <div className="text-center">
+                  <p className="text-[9px] font-bold text-slate-500 uppercase tracking-wider">Omzet Hari Ini</p>
+                  <p className="text-lg font-black text-emerald-400">Rp 8,4jt</p>
+                </div>
+                <div className="w-px h-8 bg-white/10"></div>
+                <div className="text-center">
+                  <p className="text-[9px] font-bold text-slate-500 uppercase tracking-wider">Masalah Kirim</p>
+                  <p className="text-lg font-black text-rose-400">3</p>
+                </div>
+              </div>
+              <Link
+                to="/dashboard"
+                className="inline-flex items-center gap-2 bg-pink-500 hover:bg-pink-600 text-white px-5 py-2 rounded-xl text-xs font-bold transition-all"
+              >
+                <HiChartBar className="text-base" />
+                Buka Dashboard
+              </Link>
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* ─── HERO SECTION ─── */}
       <section
         id="hero"
-        className="relative min-h-screen flex items-center pt-20 overflow-hidden"
+        className={`relative flex items-center overflow-hidden ${userRole === 'admin' ? 'min-h-[calc(100vh-56px)] pt-28' : 'min-h-screen pt-20'}`}
       >
         {/* Background Decorative */}
         <div className="absolute inset-0 bg-gradient-to-b from-pink-50/80 via-white to-white pointer-events-none"></div>
@@ -284,48 +385,131 @@ export default function LandingPage() {
 
         <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 lg:py-32">
           <div className="max-w-4xl mx-auto text-center">
-            {/* Tagline */}
-            <div className="inline-flex items-center gap-2 bg-white/80 backdrop-blur-sm border border-pink-100 px-5 py-2 rounded-full shadow-sm mb-8 animate-in fade-in zoom-in-95 duration-700">
-              <HiSparkles className="text-pink-500 text-lg" />
-              <span className="text-[10px] font-black uppercase tracking-[0.25em] text-pink-500">
-                Layanan Laundry Premium
-              </span>
-            </div>
+            {userRole === 'user' ? (
+              /* ─── HERO UNTUK AGEN (Logged In) ─── */
+              <>
+                <div className="inline-flex items-center gap-2 bg-gradient-to-r from-amber-50 to-pink-50 border border-amber-200/50 px-5 py-2 rounded-full shadow-sm mb-8 animate-in fade-in zoom-in-95 duration-700">
+                  <HiStar className="text-amber-500 text-lg" />
+                  <span className="text-[10px] font-black uppercase tracking-[0.25em] text-amber-600">
+                    Agen Terverifikasi
+                  </span>
+                </div>
 
-            {/* Headline */}
-            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black text-slate-900 tracking-tight leading-[1.1] mb-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
-              Cucian Bersih, Wangi,
-              <br />
-              <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-rose-400 to-pink-500">
-                dan Rapi Tanpa Repot.
-              </span>
-            </h1>
+                <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black text-slate-900 tracking-tight leading-[1.1] mb-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                  Selamat Datang Kembali,
+                  <br />
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-rose-400 to-pink-500">
+                    {userData?.username || 'Agen Chae'}!
+                  </span>
+                </h1>
 
-            {/* Sub-headline */}
-            <p className="text-lg sm:text-xl text-slate-500 max-w-2xl mx-auto leading-relaxed font-medium mb-10 animate-in fade-in slide-in-from-bottom-5 duration-700 delay-100">
-              Layanan laundry premium berbasis aplikasi untuk memudahkan kebutuhan harian Anda.
-              Nikmati kemudahan antar-jemput, tracking real-time, dan manajemen keagenan yang cerdas.
-            </p>
+                <p className="text-lg sm:text-xl text-slate-500 max-w-2xl mx-auto leading-relaxed font-medium mb-10 animate-in fade-in slide-in-from-bottom-5 duration-700 delay-100">
+                  Nikmati kemudahan mengelola pesanan laundry, melacak status cucian,
+                  dan dapatkan <span className="font-bold text-pink-600">diskon khusus agen</span> untuk setiap transaksi.
+                </p>
 
-            {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-in fade-in slide-in-from-bottom-5 duration-700 delay-200">
-              <button
-                onClick={() => scrollToSection("services")}
-                className="group inline-flex items-center gap-3 bg-gradient-to-r from-pink-500 to-rose-500 text-white px-10 py-4 rounded-2xl text-base font-bold shadow-2xl shadow-pink-500/30 hover:shadow-3xl hover:shadow-pink-500/40 hover:-translate-y-1 transition-all duration-300 active:scale-[0.98]"
-              >
-                Lihat Layanan Kami
-                <HiChevronDown className="text-xl group-hover:translate-y-0.5 transition-transform" />
-              </button>
-              <Link
-                to="/register"
-                className="inline-flex items-center gap-2 px-10 py-4 rounded-2xl text-base font-bold text-slate-700 border-2 border-slate-200 hover:border-pink-300 hover:text-pink-600 hover:bg-pink-50 transition-all duration-300"
-              >
-                Daftar Jadi Agen
-                <HiArrowRight className="text-lg group-hover:translate-x-1 transition-transform" />
-              </Link>
-            </div>
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-in fade-in slide-in-from-bottom-5 duration-700 delay-200">
+                  <Link
+                    to="/orders/add"
+                    className="group inline-flex items-center gap-3 bg-gradient-to-r from-pink-500 to-rose-500 text-white px-10 py-4 rounded-2xl text-base font-bold shadow-2xl shadow-pink-500/30 hover:shadow-3xl hover:shadow-pink-500/40 hover:-translate-y-1 transition-all duration-300 active:scale-[0.98]"
+                  >
+                    <HiShoppingBag className="text-xl" />
+                    Buat Order Baru
+                    <HiArrowRight className="text-xl group-hover:translate-x-1 transition-transform" />
+                  </Link>
+                  <button
+                    onClick={() => scrollToSection("services")}
+                    className="inline-flex items-center gap-2 px-10 py-4 rounded-2xl text-base font-bold text-slate-700 border-2 border-slate-200 hover:border-pink-300 hover:text-pink-600 hover:bg-pink-50 transition-all duration-300"
+                  >
+                    Lihat Harga Agen
+                    <HiChevronDown className="text-xl" />
+                  </button>
+                </div>
+              </>
+            ) : userRole === 'admin' ? (
+              /* ─── HERO UNTUK ADMIN (Logged In) ─── */
+              <>
+                <div className="inline-flex items-center gap-2 bg-slate-900/90 border border-white/10 px-5 py-2 rounded-full shadow-sm mb-8 animate-in fade-in zoom-in-95 duration-700">
+                  <HiShieldCheck className="text-emerald-400 text-lg" />
+                  <span className="text-[10px] font-black uppercase tracking-[0.25em] text-white">
+                    Panel Administrator
+                  </span>
+                </div>
 
-            {/* Stats Row */}
+                <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black text-slate-900 tracking-tight leading-[1.1] mb-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                  Selamat Datang,
+                  <br />
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-rose-400 to-pink-500">
+                    {userData?.username || 'Admin'}!
+                  </span>
+                </h1>
+
+                <p className="text-lg sm:text-xl text-slate-500 max-w-2xl mx-auto leading-relaxed font-medium mb-10 animate-in fade-in slide-in-from-bottom-5 duration-700 delay-100">
+                  Pantau kinerja operasional Chae Laundry secara real-time. Kelola pesanan,
+                  analisis laporan keuangan, dan optimalkan layanan dari satu dashboard terpadu.
+                </p>
+
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-in fade-in slide-in-from-bottom-5 duration-700 delay-200">
+                  <Link
+                    to="/dashboard"
+                    className="group inline-flex items-center gap-3 bg-gradient-to-r from-pink-500 to-rose-500 text-white px-10 py-4 rounded-2xl text-base font-bold shadow-2xl shadow-pink-500/30 hover:shadow-3xl hover:shadow-pink-500/40 hover:-translate-y-1 transition-all duration-300 active:scale-[0.98]"
+                  >
+                    <HiChartBar className="text-xl" />
+                    Buka Dashboard
+                    <HiArrowRight className="text-xl group-hover:translate-x-1 transition-transform" />
+                  </Link>
+                  <button
+                    onClick={() => scrollToSection("services")}
+                    className="inline-flex items-center gap-2 px-10 py-4 rounded-2xl text-base font-bold text-slate-700 border-2 border-slate-200 hover:border-pink-300 hover:text-pink-600 hover:bg-pink-50 transition-all duration-300"
+                  >
+                    Kelola Layanan
+                    <HiChevronDown className="text-xl" />
+                  </button>
+                </div>
+              </>
+            ) : (
+              /* ─── HERO UNTUK GUEST (Belum Login) ─── */
+              <>
+                <div className="inline-flex items-center gap-2 bg-white/80 backdrop-blur-sm border border-pink-100 px-5 py-2 rounded-full shadow-sm mb-8 animate-in fade-in zoom-in-95 duration-700">
+                  <HiSparkles className="text-pink-500 text-lg" />
+                  <span className="text-[10px] font-black uppercase tracking-[0.25em] text-pink-500">
+                    Layanan Laundry Premium
+                  </span>
+                </div>
+
+                <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black text-slate-900 tracking-tight leading-[1.1] mb-6 animate-in fade-in slide-in-from-bottom-4 duration-700">
+                  Cucian Bersih, Wangi,
+                  <br />
+                  <span className="text-transparent bg-clip-text bg-gradient-to-r from-pink-500 via-rose-400 to-pink-500">
+                    dan Rapi Tanpa Repot.
+                  </span>
+                </h1>
+
+                <p className="text-lg sm:text-xl text-slate-500 max-w-2xl mx-auto leading-relaxed font-medium mb-10 animate-in fade-in slide-in-from-bottom-5 duration-700 delay-100">
+                  Layanan laundry premium berbasis aplikasi untuk memudahkan kebutuhan harian Anda.
+                  Nikmati kemudahan antar-jemput, tracking real-time, dan manajemen keagenan yang cerdas.
+                </p>
+
+                <div className="flex flex-col sm:flex-row items-center justify-center gap-4 animate-in fade-in slide-in-from-bottom-5 duration-700 delay-200">
+                  <button
+                    onClick={() => scrollToSection("services")}
+                    className="group inline-flex items-center gap-3 bg-gradient-to-r from-pink-500 to-rose-500 text-white px-10 py-4 rounded-2xl text-base font-bold shadow-2xl shadow-pink-500/30 hover:shadow-3xl hover:shadow-pink-500/40 hover:-translate-y-1 transition-all duration-300 active:scale-[0.98]"
+                  >
+                    Lihat Layanan Kami
+                    <HiChevronDown className="text-xl group-hover:translate-y-0.5 transition-transform" />
+                  </button>
+                  <Link
+                    to="/register"
+                    className="inline-flex items-center gap-2 px-10 py-4 rounded-2xl text-base font-bold text-slate-700 border-2 border-slate-200 hover:border-pink-300 hover:text-pink-600 hover:bg-pink-50 transition-all duration-300"
+                  >
+                    Daftar Jadi Agen
+                    <HiArrowRight className="text-lg group-hover:translate-x-1 transition-transform" />
+                  </Link>
+                </div>
+              </>
+            )}
+
+            {/* Stats Row - Tampil untuk semua role */}
             <div className="mt-16 grid grid-cols-3 gap-8 max-w-lg mx-auto animate-in fade-in duration-700 delay-500">
               {[
                 { value: "1.050+", label: "Order Selesai" },
@@ -406,6 +590,16 @@ export default function LandingPage() {
                     </div>
                   </div>
 
+                  {/* Badge Diskon Agen */}
+                  {userRole === 'user' && (
+                    <div className="mb-4 inline-flex items-center gap-1.5 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-lg">
+                      <HiTag className="text-emerald-500 text-xs" />
+                      <span className="text-[10px] font-black text-emerald-600 uppercase tracking-wider">
+                        Diskon Agen 15%
+                      </span>
+                    </div>
+                  )}
+
                   {/* CTA Button */}
                   <button
                     onClick={() => handleOrder(service)}
@@ -434,35 +628,111 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ─── CTA SECTION ─── */}
-      <section className="relative py-24">
-        <div className="absolute inset-0 bg-gradient-to-r from-pink-500 to-rose-500 pointer-events-none"></div>
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(255,255,255,0.1),transparent_50%)] pointer-events-none"></div>
+      {/* ─── WIDGET KOMISI & DISKON (Khusus Agen) ─── */}
+      {userRole === 'user' && (
+        <section className="relative py-16 lg:py-20">
+          <div className="absolute inset-0 bg-gradient-to-b from-pink-50/50 to-white pointer-events-none"></div>
+          <div className="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              
+              {/* Card Komisi */}
+              <div className="bg-white rounded-3xl border border-pink-50 shadow-xl shadow-pink-500/5 p-8 relative overflow-hidden group">
+                <div className="absolute -top-10 -right-10 w-40 h-40 bg-pink-100/40 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
+                <div className="relative z-10">
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="p-3 bg-gradient-to-br from-amber-100 to-amber-200 rounded-2xl">
+                      <HiCash className="text-2xl text-amber-600" />
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-500">
+                        Komisi Anda
+                      </p>
+                      <h3 className="text-xl font-bold text-slate-900">Ringkasan Komisi</h3>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="bg-amber-50 rounded-2xl p-5">
+                      <p className="text-xs text-amber-600 font-bold uppercase tracking-wider">Komisi Bulan Ini</p>
+                      <p className="text-3xl font-black text-slate-900 mt-1">Rp 850K</p>
+                      <p className="text-[10px] text-emerald-600 font-bold mt-1">↑ 12% dari bulan lalu</p>
+                    </div>
+                    <div className="bg-pink-50 rounded-2xl p-5">
+                      <p className="text-xs text-pink-600 font-bold uppercase tracking-wider">Total Poin Anda</p>
+                      <p className="text-3xl font-black text-slate-900 mt-1">{userData?.points || 0}</p>
+                      <p className="text-[10px] text-slate-400 font-bold mt-1">Rp 10.000 = 1 Poin</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
 
-        <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 text-center">
-          <h2 className="text-4xl sm:text-5xl font-black text-white tracking-tight mb-6">
-            Siap Bergabung Jadi Mitra?
-          </h2>
-          <p className="text-lg text-pink-100 font-medium max-w-xl mx-auto mb-10">
-            Daftarkan agen laundry Anda sekarang dan nikmati kemudahan sistem manajemen berbasis cloud dari ChaeLaundry.
-          </p>
-          <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
-            <Link
-              to="/register"
-              className="inline-flex items-center gap-3 bg-white text-pink-600 px-10 py-4 rounded-2xl text-base font-bold shadow-2xl hover:shadow-3xl hover:-translate-y-1 transition-all duration-300"
-            >
-              <HiSparkles className="text-xl" />
-              Daftar Agen Sekarang
-            </Link>
-            <Link
-              to="/login"
-              className="inline-flex items-center gap-2 px-10 py-4 rounded-2xl text-base font-bold text-white border-2 border-white/30 hover:bg-white/10 transition-all duration-300"
-            >
-              Masuk ke Sistem
-            </Link>
+              {/* Card Kuota Diskon */}
+              <div className="bg-white rounded-3xl border border-pink-50 shadow-xl shadow-pink-500/5 p-8 relative overflow-hidden group">
+                <div className="absolute -bottom-10 -left-10 w-40 h-40 bg-emerald-100/40 rounded-full blur-2xl group-hover:scale-150 transition-transform duration-700"></div>
+                <div className="relative z-10">
+                  <div className="flex items-center gap-3 mb-6">
+                    <div className="p-3 bg-gradient-to-br from-emerald-100 to-emerald-200 rounded-2xl">
+                      <HiTag className="text-2xl text-emerald-600" />
+                    </div>
+                    <div>
+                      <p className="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-500">
+                        Diskon Agen
+                      </p>
+                      <h3 className="text-xl font-bold text-slate-900">Kuota Diskon Kemitraan</h3>
+                    </div>
+                  </div>
+                  <div className="space-y-4">
+                    <div className="flex items-center justify-between p-4 bg-emerald-50 rounded-2xl">
+                      <span className="text-sm font-bold text-slate-700">Diskon Agen Bulanan</span>
+                      <span className="text-lg font-black text-emerald-600">15%</span>
+                    </div>
+                    <div className="flex items-center justify-between p-4 bg-pink-50 rounded-2xl">
+                      <span className="text-sm font-bold text-slate-700">Sisa Kuota Diskon</span>
+                      <span className="text-lg font-black text-pink-600">12 / 20</span>
+                    </div>
+                    <div className="w-full bg-slate-100 rounded-full h-2.5 overflow-hidden">
+                      <div className="h-full bg-gradient-to-r from-pink-400 to-rose-500 rounded-full" style={{width: '60%'}}></div>
+                    </div>
+                    <p className="text-[11px] text-slate-400 font-medium">Gunakan kuota diskon Anda sebelum reset akhir bulan.</p>
+                  </div>
+                </div>
+              </div>
+
+            </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
+
+      {/* ─── CTA SECTION ─── */}
+      {!isLoggedIn && (
+        <section className="relative py-24">
+          <div className="absolute inset-0 bg-gradient-to-r from-pink-500 to-rose-500 pointer-events-none"></div>
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_30%_50%,rgba(255,255,255,0.1),transparent_50%)] pointer-events-none"></div>
+
+          <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 text-center">
+            <h2 className="text-4xl sm:text-5xl font-black text-white tracking-tight mb-6">
+              Siap Bergabung Jadi Mitra?
+          </h2>
+            <p className="text-lg text-pink-100 font-medium max-w-xl mx-auto mb-10">
+              Daftarkan agen laundry Anda sekarang dan nikmati kemudahan sistem manajemen berbasis cloud dari ChaeLaundry.
+          </p>
+            <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
+              <Link
+                to="/register"
+                className="inline-flex items-center gap-3 bg-white text-pink-600 px-10 py-4 rounded-2xl text-base font-bold shadow-2xl hover:shadow-3xl hover:-translate-y-1 transition-all duration-300"
+              >
+                <HiSparkles className="text-xl" />
+                Daftar Agen Sekarang
+            </Link>
+              <Link
+                to="/login"
+                className="inline-flex items-center gap-2 px-10 py-4 rounded-2xl text-base font-bold text-white border-2 border-white/30 hover:bg-white/10 transition-all duration-300"
+              >
+                Masuk ke Sistem
+            </Link>
+            </div>
+          </div>
+        </section>
+      )}
 
       {/* ─── FOOTER ─── */}
       <footer id="footer" className="bg-slate-900 text-white py-16">
