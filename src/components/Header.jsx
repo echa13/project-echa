@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 import { 
   HiSearch, 
   HiBell, 
@@ -10,22 +11,25 @@ import {
 
 // Ambil props userImage yang dikirim dari MainLayout
 export default function Header({ userImage }) {
+  const navigate = useNavigate();
   const [isProfileOpen, setIsProfileOpen] = useState(false);
   const dropdownRef = useRef(null);
 
-  // Menutup dropdown saat user mengklik area di luar dropdown (Tetap Sama)
+  // Menutup dropdown saat user mengklik area di luar dropdown
   useEffect(() => {
     const handleClickOutside = (event) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
         setIsProfileOpen(false);
       }
     };
-
     document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  const handleLogout = () => {
+    localStorage.removeItem("user");
+    navigate("/");
+  };
 
   return (
     <header className="sticky top-0 z-50 flex items-center justify-between px-6 h-[76px] bg-white/90 backdrop-blur-md border-b border-pink-100 shadow-sm font-sans transition-all">
@@ -34,7 +38,7 @@ export default function Header({ userImage }) {
       <div className="flex items-center gap-3">
         <div className="flex items-center justify-center">
           <img 
-            src="/img/logo2.png" 
+            src="/img/logocha.jpg" 
             alt="Chae Laundry Logo" 
             className="h-15 w-auto object-contain"
           />
@@ -137,7 +141,7 @@ export default function Header({ userImage }) {
               <div className="h-px bg-pink-50 my-1 mx-2"></div>
               
               <div className="p-2">
-                <button className="flex items-center gap-3 w-full text-left px-3 py-2 text-sm font-medium text-rose-500 rounded-xl hover:bg-rose-50 transition-colors">
+                <button onClick={handleLogout} className="flex items-center gap-3 w-full text-left px-3 py-2 text-sm font-medium text-rose-500 rounded-xl hover:bg-rose-50 transition-colors">
                   <HiOutlineLogout className="text-lg" />
                   Keluar
                 </button>

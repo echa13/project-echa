@@ -122,6 +122,11 @@ function StatusItem({ to, icon, label, code, dotColor }) {
 
 // ── Main Sidebar ──────────────────────────────────────────────
 export default function Sidebar() {
+  // Baca role user dari localStorage
+  const userData = JSON.parse(localStorage.getItem("user") || "{}");
+  const userRole = userData.role || null;
+  const isAdmin = userRole === 'admin';
+
   return (
     <aside className="hidden lg:flex flex-col justify-between w-64 h-screen flex-shrink-0 p-5 sticky top-0 z-40 bg-white/90 backdrop-blur-md border-r border-pink-100 font-sans transition-all">
       
@@ -130,7 +135,7 @@ export default function Sidebar() {
         <div className="flex items-center gap-3 px-2 mb-8">
           <div className="w-10 h-10 rounded-xl flex-shrink-0 bg-white flex items-center justify-center shadow-sm border border-pink-50 overflow-hidden">
             <img 
-              src="/img/logo2.png" 
+              src="/img/logocha.jpg" 
               alt="Chae Laundry Logo" 
               className="w-full h-full object-contain p-1" 
             />
@@ -140,22 +145,32 @@ export default function Sidebar() {
               Chae<span className="text-pink-500 font-medium">Laundry</span>
             </p>
             <p className="text-[9px] font-bold uppercase tracking-widest mt-1 text-pink-400">
-              Admin Portal
+              {isAdmin ? 'Admin Portal' : 'Agen Panel'}
             </p>
           </div>
         </div>
 
         {/* Main Menu */}
         <div className="mb-6">
-          <SectionLabel>Menu Utama</SectionLabel>
-          <NavItem to="/dashboard" end icon={<DashIcon />} label="Dashboard" badge="Baru" />
-          <NavItem to="/members" icon={<MemberIcon />} label="Member" badge="48" />
-          <NavItem to="/orders" icon={<OrderIcon />} label="Order" badge="5" />
-          <NavItem to="/reports" icon={<ReportIcon />} label="Laporan" />
+          <SectionLabel>{isAdmin ? 'Menu Utama' : 'Menu Agen'}</SectionLabel>
           
-          {/* DIUBAH: Menambahkan baris menu Manajemen User sesuai arahan modul dosen */}
-          <NavItem to="/admin-users" icon={<UserGroupIcon />} label="Manajemen User" />
-        </div>
+          {isAdmin && (
+            <NavItem to="/dashboard" end icon={<DashIcon />} label="Dashboard" badge="Baru" />
+          )}
+          
+          {isAdmin && (
+            <NavItem to="/members" icon={<MemberIcon />} label="Member" badge="48" />
+          )}
+          
+          <NavItem to="/orders" icon={<OrderIcon />} label="Order" badge={isAdmin ? "5" : ""} />
+          
+          {isAdmin && (
+            <NavItem to="/reports" icon={<ReportIcon />} label="Laporan" />
+          )}
+          
+          {isAdmin && (
+            <NavItem to="/admin-users" icon={<UserGroupIcon />} label="Manajemen User" />
+          )}
 
         {/* Divider */}
         <div className="h-px bg-pink-50 mx-2 mb-6"></div>
@@ -167,6 +182,7 @@ export default function Sidebar() {
           <StatusItem to="/401" icon={<LockIcon color="#3b82f6" />} label="Unauthorized"   code="401" dotColor="#3b82f6" />
           <StatusItem to="/403" icon={<BanIcon  color="#ef4444" />} label="Forbidden"      code="403" dotColor="#ef4444" />
         </div>
+      </div>
       </div>
 
       {/* Bottom */}

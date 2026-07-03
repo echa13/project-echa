@@ -1,4 +1,5 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { serviceAPI } from "../services/serviceAPI";
 import { 
   HiDocumentReport, 
   HiTrendingUp, 
@@ -12,25 +13,85 @@ import {
 
 export default function Reports() {
   const [period, setPeriod] = useState("Bulan Ini");
+  const [orders, setOrders] = useState([]);
+  const [services, setServices] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  const fetchData = async () => {
+    try {
+      setLoading(true);
+      const [ordersData, servicesData] = await Promise.all([
+        serviceAPI.fetchOrders(),
+        serviceAPI.fetchServices()
+      ]);
+      setOrders(ordersData);
+      setServices(servicesData);
+    } catch (err) {
+      console.error("Gagal muat data:", err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => { fetchData(); }, []);
+
+  const getServiceName = (id) => {
+    const s = services.find(sv => sv.id === id);
+    return s ? s.service_name : "Layanan #" + id;
+  };
+
+  // Hitung statistik dari data real
+  const totalRevenue = orders.reduce((sum, o) => sum + (o.total_price || 0), 0);
+  const totalOrders = orders.length;
+  const totalCustomers = [...new Set(orders.map(o => o.customer_name).filter(Boolean))].length;
 
   const stats = [
-    { label: "Omzet Bruto", value: "Rp 8.450.000", icon: <HiCash />, trend: "+12.5%", color: "pink" },
-    { label: "Volume Order", value: "142", icon: <HiShoppingBag />, trend: "+8%", color: "rose" },
-    { label: "Member Baru", value: "24", icon: <HiTrendingUp />, trend: "+18%", color: "purple" },
+    { label: "Omzet Bruto", value: "Rp " + totalRevenue.toLocaleString("id-ID"), icon: <HiCash />, trend: "Data Real", color: "pink" },
+    { label: "Volume Order", value: totalOrders.toString(), icon: <HiShoppingBag />, trend: totalOrders > 0 ? "+" + totalOrders : "0", color: "rose" },
+    { label: "Pelanggan", value: totalCustomers.toString(), icon: <HiTrendingUp />, trend: totalCustomers > 0 ? "+" + totalCustomers : "0", color: "purple" },
   ];
 
-  const reportData = [
-    { id: 1, date: "01 Mei 2026", orders: 12, revenue: "Rp 450.000", favorite: "Cuci Komplit", efficiency: "98%" },
-    { id: 2, date: "02 Mei 2026", orders: 15, revenue: "Rp 620.000", favorite: "Express", efficiency: "95%" },
-    { id: 3, date: "03 Mei 2026", orders: 10, revenue: "Rp 380.000", favorite: "Cuci Komplit", efficiency: "100%" },
-    { id: 4, date: "04 Mei 2026", orders: 22, revenue: "Rp 940.000", favorite: "Setrika", efficiency: "92%" },
-    { id: 5, date: "05 Mei 2026", orders: 18, revenue: "Rp 710.000", favorite: "Cuci Komplit", efficiency: "97%" },
-  ];
+  // Data harian dari orders
+  const dailyMap = {};
+  orders.forEach(o => {
+    if (!o.created_at) return;
+    const day = new Date(o.created_at).toLocaleDateString("id-ID", { day: "2-digit", month: "short", year: "numeric" });
+    if (!dailyMap[day]) dailyMap[day] = { orders: 0, revenue: 0, services: {} };
+    dailyMap[day].orders += 1;
+    dailyMap[day].revenue += o.total_price || 0;
+    const sName = getServiceName(o.service_id);
+    dailyMap[day].services[sName] = (dailyMap[day].services[sName] || 0) + 1;
+  });
+
+  const reportData = Object.entries(dailyMap).slice(0, 7).map(([date, data], idx) => {
+    const topService = Object.entries(data.services).sort((a, b) => b[1] - a[1])[0];
+    return {
+      id: idx + 1,
+      date,
+      orders: data.orders,
+      revenue: "Rp " + data.revenue.toLocaleString("id-ID"),
+      favorite: topService ? topService[0] : "-",
+      efficiency: Math.min(100, Math.round((data.orders / Math.max(...Object.values(dailyMap).map(d => d.orders))) * 100)) + "%"
+    };
+  });
+
+  const grossTotal = reportData.reduce((sum, r) => {
+    const num = parseInt(r.revenue.replace(/[^0-9]/g, ""));
+    return sum + (isNaN(num) ? 0 : num);
+  }, 0);
 
   return (
     <div className="min-h-screen bg-[#FFF5F7] p-4 md:p-10 font-sans selection:bg-pink-200">
       <div className="max-w-6xl mx-auto space-y-10">
         
+        {/* ── LOADING STATE ── */}
+        {loading ? (
+          <div className="bg-white rounded-[2.5rem] p-20 text-center shadow-xl shadow-pink-500/5 border border-pink-50">
+            <div className="w-12 h-12 border-4 border-pink-200 border-t-pink-500 rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="text-slate-400 font-medium">Memuat data laporan...</p>
+          </div>
+        ) : (
+        <>
         {/* ── TOP ACTION BAR ── */}
         <div className="flex flex-col lg:flex-row lg:items-end justify-between gap-6">
           <div>
@@ -146,7 +207,7 @@ export default function Reports() {
                 <p className="text-xs text-pink-400 font-medium italic">Termasuk pajak & biaya admin</p>
              </div>
              <div className="text-right">
-                <span className="text-3xl font-black text-white tracking-tighter">Rp 3.100.000</span>
+                <span className="text-3xl font-black text-white tracking-tighter">Rp {grossTotal.toLocaleString("id-ID")}</span>
              </div>
           </div>
         </div>
@@ -166,6 +227,8 @@ export default function Reports() {
             </p>
           </div>
         </div>
+        </>        
+        )}
 
       </div>
     </div>

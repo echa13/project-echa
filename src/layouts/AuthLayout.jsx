@@ -25,7 +25,7 @@ export default function AuthLayout() {
               <div className="w-20 h-20 bg-slate-900 rounded-3xl flex items-center justify-center shadow-2xl shadow-slate-900/20 mb-6 rotate-3 overflow-hidden p-3 border-4 border-white">
                 {/* ── LOGO IMAGE DISINI ── */}
                 <img 
-                  src="img/logo2.png" // Ganti dengan path logo Anda (misal: /assets/logo.png)
+                  src="img/logocha.jpg"
                   alt="Chae Laundry Logo" 
                   className="w-full h-full object-contain"
                 />

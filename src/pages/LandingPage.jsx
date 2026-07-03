@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
+import { serviceAPI } from "../services/serviceAPI";
 import {
   HiMenu,
   HiX,
@@ -19,6 +20,10 @@ import {
   HiShoppingBag,
   HiStar,
   HiChartBar,
+  HiDocumentReport,
+  HiExclamationCircle,
+  HiCheckCircle,
+  HiCube,
 } from "react-icons/hi";
 
 // ─── Service Card Data (Fallback jika API belum siap) ───
@@ -94,6 +99,13 @@ export default function LandingPage() {
   const [selectedService, setSelectedService] = useState(null);
   const [userData, setUserData] = useState(null);
   const [userRole, setUserRole] = useState(null);
+  const [adminStats, setAdminStats] = useState({
+    totalOrders: 0,
+    totalRevenue: 0,
+    pendingOrders: 0,
+    completedOrders: 0,
+  });
+  const [statsLoading, setStatsLoading] = useState(false);
 
   // Cek login status, role & scroll
   useEffect(() => {
@@ -113,6 +125,29 @@ export default function LandingPage() {
     window.addEventListener("scroll", handleScroll);
     return () => window.removeEventListener("scroll", handleScroll);
   }, []);
+
+  // Fetch admin stats from Supabase
+  useEffect(() => {
+    const fetchAdminStats = async () => {
+      if (userRole !== 'admin') return;
+      try {
+        setStatsLoading(true);
+        const orders = await serviceAPI.fetchOrders();
+        const totalRevenue = orders.reduce((sum, o) => sum + (o.total_price || 0), 0);
+        setAdminStats({
+          totalOrders: orders.length,
+          totalRevenue,
+          pendingOrders: orders.filter(o => o.status === 'pending' || o.status === 'proses').length,
+          completedOrders: orders.filter(o => o.status === 'selesai' || o.status === 'terkirim').length,
+        });
+      } catch (err) {
+        console.error("Gagal muat statistik admin:", err);
+      } finally {
+        setStatsLoading(false);
+      }
+    };
+    fetchAdminStats();
+  }, [userRole]);
 
   // Smooth scroll ke section
   const scrollToSection = (id) => {
@@ -146,7 +181,7 @@ export default function LandingPage() {
             <Link to="/" className="flex items-center gap-3 group">
               <div className="w-11 h-11 rounded-xl bg-white shadow-md border border-pink-50 flex items-center justify-center overflow-hidden group-hover:scale-105 transition-transform">
                 <img
-                  src="/img/logo2.png"
+                  src="/img/logocha.jpg"
                   alt="Chae Laundry"
                   className="w-full h-full object-contain p-1.5"
                 />
@@ -325,37 +360,83 @@ export default function LandingPage() {
 
       {/* ─── FLOATING ADMIN BAR (Khusus Admin) ─── */}
       {userRole === 'admin' && (
-        <div className="fixed top-20 left-0 right-0 z-40 bg-slate-900/95 backdrop-blur-xl border-b border-white/10 shadow-2xl animate-in slide-in-from-top-3 duration-500">
+        <div className="fixed top-20 left-0 right-0 z-40 bg-slate-900 backdrop-blur-xl border-b border-white/10 shadow-2xl animate-in slide-in-from-top-3 duration-500">
           <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="flex items-center justify-between py-3">
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2 bg-emerald-500/20 text-emerald-400 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider">
-                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse"></div>
+            <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-3 py-3">
+              {/* Left: Admin Mode Badge */}
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-2 bg-emerald-500/15 text-emerald-400 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase tracking-wider border border-emerald-500/20 shadow-sm shadow-emerald-500/5">
+                  <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-sm shadow-emerald-400/50"></div>
                   Admin Mode
                 </div>
-              </div>
-              <div className="flex items-center gap-6">
-                <div className="text-center">
-                  <p className="text-[9px] font-bold text-slate-500 uppercase tracking-wider">Total Order</p>
-                  <p className="text-lg font-black text-white">1.050</p>
-                </div>
-                <div className="w-px h-8 bg-white/10"></div>
-                <div className="text-center">
-                  <p className="text-[9px] font-bold text-slate-500 uppercase tracking-wider">Omzet Hari Ini</p>
-                  <p className="text-lg font-black text-emerald-400">Rp 8,4jt</p>
-                </div>
-                <div className="w-px h-8 bg-white/10"></div>
-                <div className="text-center">
-                  <p className="text-[9px] font-bold text-slate-500 uppercase tracking-wider">Masalah Kirim</p>
-                  <p className="text-lg font-black text-rose-400">3</p>
+                <div className="hidden sm:flex items-center gap-1.5 text-[10px] text-slate-500 font-medium">
+                  <HiShieldCheck className="text-emerald-400/60 text-xs" />
+                  <span>Panel Kendali</span>
                 </div>
               </div>
+
+              {/* Center: Stat Cards */}
+              <div className="flex items-center gap-3 flex-wrap">
+                <div className="flex items-center gap-2.5 bg-white/5 border border-white/10 rounded-xl px-4 py-2 min-w-[110px]">
+                  <div className="p-1.5 rounded-lg bg-pink-500/20 text-pink-400">
+                    <HiCube className="text-sm" />
+                  </div>
+                  <div>
+                    <p className="text-[8px] text-slate-500 font-bold uppercase tracking-wider">Total Order</p>
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-base font-black text-white">{statsLoading ? "..." : adminStats.totalOrders.toLocaleString("id-ID")}</span>
+                      <span className="text-[8px] text-slate-600 font-medium">transaksi</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2.5 bg-white/5 border border-white/10 rounded-xl px-4 py-2 min-w-[130px]">
+                  <div className="p-1.5 rounded-lg bg-emerald-500/20 text-emerald-400">
+                    <HiCash className="text-sm" />
+                  </div>
+                  <div>
+                    <p className="text-[8px] text-slate-500 font-bold uppercase tracking-wider">Omzet</p>
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-base font-black text-emerald-400">{statsLoading ? "..." : "Rp " + adminStats.totalRevenue.toLocaleString("id-ID")}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2.5 bg-white/5 border border-white/10 rounded-xl px-4 py-2 min-w-[100px]">
+                  <div className="p-1.5 rounded-lg bg-amber-500/20 text-amber-400">
+                    <HiClock className="text-sm" />
+                  </div>
+                  <div>
+                    <p className="text-[8px] text-slate-500 font-bold uppercase tracking-wider">Diproses</p>
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-base font-black text-amber-400">{statsLoading ? "..." : adminStats.pendingOrders}</span>
+                      <span className="text-[8px] text-slate-600 font-medium">order</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2.5 bg-white/5 border border-white/10 rounded-xl px-4 py-2 min-w-[100px]">
+                  <div className="p-1.5 rounded-lg bg-emerald-500/20 text-emerald-400">
+                    <HiCheckCircle className="text-sm" />
+                  </div>
+                  <div>
+                    <p className="text-[8px] text-slate-500 font-bold uppercase tracking-wider">Selesai</p>
+                    <div className="flex items-baseline gap-1">
+                      <span className="text-base font-black text-emerald-400">{statsLoading ? "..." : adminStats.completedOrders}</span>
+                      <span className="text-[8px] text-slate-600 font-medium">order</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Right: Dashboard Button */}
               <Link
                 to="/dashboard"
-                className="inline-flex items-center gap-2 bg-pink-500 hover:bg-pink-600 text-white px-5 py-2 rounded-xl text-xs font-bold transition-all"
+                className="inline-flex items-center justify-center gap-2 bg-gradient-to-r from-pink-500 to-rose-500 hover:from-pink-600 hover:to-rose-600 text-white px-5 py-2.5 rounded-xl text-xs font-bold shadow-lg shadow-pink-500/20 hover:shadow-xl hover:shadow-pink-500/30 transition-all hover:-translate-y-0.5 active:scale-95"
               >
                 <HiChartBar className="text-base" />
                 Buka Dashboard
+                <HiArrowRight className="text-sm" />
               </Link>
             </div>
           </div>
@@ -743,7 +824,7 @@ export default function LandingPage() {
               <div className="flex items-center gap-3 mb-6">
                 <div className="w-12 h-12 rounded-xl bg-white/10 flex items-center justify-center overflow-hidden">
                   <img
-                    src="/img/logo2.png"
+                    src="/img/logocha.jpg"
                     alt="Chae Laundry"
                     className="w-full h-full object-contain p-1.5"
                   />

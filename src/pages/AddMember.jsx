@@ -1,12 +1,12 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-// Icons dari Heroicons (via react-icons)
 import { 
   HiUser, 
   HiPhone, 
   HiLocationMarker, 
   HiArrowLeft,
   HiExclamationCircle,
+  HiCheckCircle,
   HiIdentification,
   HiBadgeCheck,
   HiSparkles
@@ -24,6 +24,7 @@ export default function AddMembers() {
   });
 
   const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
   const handleChange = (e) => {
     setForm({
@@ -31,6 +32,7 @@ export default function AddMembers() {
       [e.target.name]: e.target.value,
     });
     if (error) setError("");
+    if (success) setSuccess("");
   };
 
   const handleSubmit = (e) => {
@@ -41,9 +43,23 @@ export default function AddMembers() {
       return;
     }
 
-    console.log("DATA MEMBER BARU:", form);
-    alert("Member baru berhasil diaktivasi!");
-    navigate("/members"); // Kembali ke halaman Data Member
+    // Simpan ke localStorage untuk integrasi dengan Member.jsx
+    const existing = JSON.parse(localStorage.getItem("crm_customers") || "[]");
+    const newMember = {
+      id: existing.length + 1,
+      name: form.name,
+      phone: form.phone,
+      address: form.address || "-",
+      type: form.type === "Regular" ? "Reguler" : form.type === "Premium" ? "Premium" : "VIP",
+      status: "Aktif",
+      points: 0,
+      tier: form.type === "Corporate" ? "Platinum" : form.type === "Premium" ? "Gold" : "Silver",
+      notes: form.notes || "",
+    };
+    localStorage.setItem("crm_customers", JSON.stringify([newMember, ...existing]));
+    
+    setSuccess("Member baru berhasil diaktivasi! Mengalihkan...");
+    setTimeout(() => navigate("/members"), 1500);
   };
 
   return (
@@ -126,11 +142,16 @@ export default function AddMembers() {
             {/* Container Form Utama */}
             <div className="bg-white/90 backdrop-blur-xl rounded-[2.5rem] p-8 md:p-12 shadow-2xl shadow-pink-500/5 border border-white relative overflow-hidden">
               
-              {/* Banner Error (Bila ada) */}
               {error && (
                 <div className="mb-8 flex items-center gap-3 bg-rose-50 text-rose-600 px-6 py-4 rounded-2xl border border-rose-100 text-sm font-bold animate-pulse">
                   <HiExclamationCircle className="text-xl shrink-0" />
                   {error}
+                </div>
+              )}
+              {success && (
+                <div className="mb-8 flex items-center gap-3 bg-emerald-50 text-emerald-600 px-6 py-4 rounded-2xl border border-emerald-100 text-sm font-bold">
+                  <HiCheckCircle className="text-xl shrink-0" />
+                  {success}
                 </div>
               )}
 

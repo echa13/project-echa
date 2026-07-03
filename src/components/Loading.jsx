@@ -9,7 +9,7 @@ export default function Loading() {
         {/* Logo Chae Laundry */}
         <div className="relative z-10 mb-8 flex flex-col items-center">
           <img
-            src="/img/logo2.png" // Pastikan path logo sudah benar
+            src="/img/logocha.jpg" // Pastikan path logo sudah benar
             alt="Chae Laundry"
             className="w-32 h-32 object-contain drop-shadow-sm animate-bounce [animation-duration:2s]"
           />

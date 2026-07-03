@@ -31,10 +31,18 @@ const AuthLayout = lazy(() => import("./layouts/AuthLayout"));
 
 const Laporan = lazy(() => import("./pages/Laporan"));
 
-/* Protected Route */
+/* Protected Route - Cuma cek login */
 const ProtectedRoute = ({ children }) => {
   const user = localStorage.getItem("user");
   return user ? children : <Navigate to="/login" replace />;
+};
+
+/* Admin Route - Cek role admin */
+const AdminRoute = () => {
+  const user = JSON.parse(localStorage.getItem("user") || "{}");
+  if (!user.id) return <Navigate to="/login" replace />;
+  if (user.role !== 'admin') return <Navigate to="/" replace />;
+  return <Outlet />;
 };
 
 function App() {
@@ -52,7 +60,7 @@ function App() {
           <Route path="/forgot" element={<Forgot />} />
         </Route>
 
-        {/* MAIN */}
+        {/* MAIN - Butuh Login */}
         <Route
           element = {
             <ProtectedRoute>
@@ -60,30 +68,27 @@ function App() {
             </ProtectedRoute>
           }
         >
-          <Route path="/dashboard" element={<Dashboard />} />
+          {/* ── Admin Only ── */}
+          <Route element={<AdminRoute />}>
+            <Route path="/dashboard" element={<Dashboard />} />
+            <Route path="/admin-users" element={<AdminUsers />} />
+            <Route path="/reports" element={<Laporan />} />
+          </Route>
 
-          {/* ADMIN USERS CRUD */}
-          <Route path="/admin-users" element={<AdminUsers />} /> {/* <-- Route untuk halaman manajemen user kamu */}
-
-          {/* PATIENTS */}
+          {/* ── All Logged In Users (Agen & Admin) ── */}
           <Route path="/Members" element={<Member />} />
           <Route path="/Members/add" element={<AddMember />} />
-
-          {/* ORDERS */}
           <Route path="/Orders" element={<Order />} />
           <Route path="/Orders/add" element={<AddOrder />} />
-
-          {/* Laporan */}
-          <Route path="/reports" element={<Laporan />} />
 
           {/* ERROR */}
           <Route path="/400" element={<ErrorPage code="400" />} />
           <Route path="/401" element={<ErrorPage code="401" />} />
           <Route path="/403" element={<ErrorPage code="403" />} />
-
-          {/* 404 */}
-          <Route path="*" element={<ErrorPage code="404" />} />
         </Route>
+
+        {/* 404 - Public (di luar ProtectedRoute) */}
+        <Route path="*" element={<ErrorPage code="404" />} />
 
       </Routes>
     </Suspense>
